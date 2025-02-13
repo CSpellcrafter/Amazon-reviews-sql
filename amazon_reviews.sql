@@ -40,14 +40,43 @@ ORDER BY avg_rating DESC;
 -- Query to find the top-rated product(s)
 SELECT p.product_name, COUNT(r.review_id) AS review_count, ROUND(AVG(r.rating), 2) AS avg_rating
 FROM Products p
+  JOIN Reviews r ON p.product_id = r.product_id
+  GROUP BY p.product_name
+  HAVING COUNT (r.review_id) > 1
+  ORDER BY avg_rating DESC, review_count DESC;
+
+--Find the highest-rated product per category
+SELECT category, product_name, MAX(avg_rating) 
+FROM (
+SELECT p.category, p.product_name, ROUND(AVG(r.rating), 2) AS avg_rating
+FROM Products p
+JOIN Reviews r ON p.product_id = r.product_id
+GROUP BY p.category, p.product_name
+) AS category_ratings
+GROUP BY category, product_name;
+
+--Find the reviews per month trend
+SELECT DATE_TRUNC('month', review_date) AS review_month, COUNT(*) AS total_reviews
+FROM Reviews
+GROUP BY review_month
+ORDER BY review_month;
+
+--Find the products with the lowest ratings
+SELECT p.product_name, ROUND(AVG(r.rating), 2) AS avg_rating, COUNT(r.review_id) AS review_count
+FROM Products p
 JOIN Reviews r ON p.product_id = r.product_id
 GROUP BY p.product_name
-HAVING COUNT (r.review_id) > 1
-ORDER BY avg_rating DESC, review_count DESC;
+HAVING AVG(r.rating) <= 3
+ORDER BY avg_rating ASC;
+
+
+
 
 -- Query to get the most active reviewers
 SELECT customer_id, COUNT(review_id) AS review_count
 FROM Reviews
+
+  
 Group By customer_id
 ORDER BY review_count DESC
 Limit 5;
